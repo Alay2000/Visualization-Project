@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="author" content="Alay Shimpee, Ankit Chaparria" />
+    <meta
+      name="description"
+      content="Data visualization project for singapore polpulation dataset"
+    />
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <title>Singapore population visualization</title>
+    <style>
+      body {
+        background-image: url("https://wallpapercave.com/wp/wp3165096.jpg");
+        background-repeat: no-repeat;
+        background-size: 100%, 100%;
+      }
+      #header {
+        font-size: 40px;
+        overflow: hidden;
+        height: 60px;
+        width: 100%;
+        align-items: center;
+        font-weight: bold;
+      }
+      #navBar {
+        background-color: Teal;
+        overflow: hidden;
+        height: 65px;
+        width: 100%;
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .button {
+        width: 20%;
+        height: 60px;
+        font-size: 20px;
+        display: inline-block;
+        font-weight: bold;
+        padding: 0.25em 0.5em;
+        text-decoration: none;
+        transition: 0.4s;
+        border-radius: 0.5em;
+        margin: 2px;
+        animation: bouncy 5s infinite linear;
+      }
+
+      .button:hover {
+        background: #1ec7bb;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div id="header">
+        <center>Visualizing Singapore Birth and Fertility Dataset</center>
+      </div>
+      <div id="navBar">
+        <button class="button" onclick="graph1()">Crude Birth Rate</button>
+        <button class="button" onclick="graph2()">
+          Total Fertility/Reproduction Rate
+        </button>
+        <button class="button" onclick="graph3()">Live Birth</button>
+        <button class="button" onclick="graph4()">
+          Total Fertility Rate by Ethinic Group
+        </button>
+        <button class="button" onclick="graph5()">
+          Age Specific Fertility Rate
+        </button>
+      </div>
+    </div>
+    <br /><br />
+
+    <svg
+      id="container1"
+      width="1100"
+      height="500"
+      style="transform: translate(200px, 0px)"
+      fill=" white"
+    >
+      <g id="drawSpace1" style="transform: translate(100px, 50px)"></g>
+    </svg>
+    <svg
+      id="container2"
+      width="1100"
+      height="500"
+      style="transform: translate(200px, 0px)"
+    >
+      <g id="drawSpace2" style="transform: translate(100px, 50px)"></g>
+    </svg>
+    <svg
+      id="container3"
+      width="1100"
+      height="500"
+      style="transform: translate(200px, 0px)"
+    >
+      <g id="drawSpace3" style="transform: translate(100px, 50px)"></g>
+    </svg>
+    <svg
+      id="container4"
+      width="1100"
+      height="500"
+      style="transform: translate(200px, 0px)"
+    >
+      <g id="drawSpace4" style="transform: translate(100px, 50px)"></g>
+    </svg>
+    <svg
+      id="container5"
+      width="1100"
+      height="500"
+      style="transform: translate(200px, 0px)"
+    >
+      <g id="drawSpace5" style="transform: translate(100px, 50px)"></g>
+    </svg>
+
+    <script>
+      let dataMax;
+      let drawSpaceH = 400;
+      let drawSpaceW = 800;
+      function graph1() {
+        document.getElementById("container1").style.display = "block";
+        document.getElementById("container2").style.display = "none";
+        document.getElementById("container3").style.display = "none";
+        document.getElementById("container4").style.display = "none";
+        document.getElementById("container5").style.display = "none";
+        let container = d3.select("#container1");
+        let drawSpace = d3.select("#drawSpace1");
+        container.style("border", "solid 1px black");
+        d3.csv("crude-birth-rate.csv", function (myData) {
+          console.log(myData);
+          dataMax = d3.max(myData, function (d) {
+            return +d.value;
+          });
+          console.log(dataMax);
+          var xScale = d3
+            .scaleLinear()
+            .domain([1960, 2020])
+            .range([0, drawSpaceW]);
+          var yScale = d3
+            .scaleLinear()
+            .domain([0, dataMax])
+            .range([drawSpaceH, 0]);
+          drawSpace
+            .append("g")
+            .call(d3.axisLeft(yScale))
+            .style("stroke", "black");
+          drawSpace
+            .append("g")
+            .call(d3.axisBottom(xScale))
+            .style("stroke", "black")
+            .attr("transform", "translate(0," + drawSpaceH + ")");
+          // Add x-axis label
+          drawSpace
+            .append("text")
+            .attr("x", drawSpaceW / 2)
+            .attr("y", drawSpaceH + 45)
+            .attr("text-anchor", "middle")
+            .style("font-family", "sans-serif")
+            .style("fill","black")
+            .text("Year");
+          // Add y-axis label
+
+          drawSpace
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr(
+              "transform",
+              "translate(-50," + drawSpaceH / 2 + ")rotate(-90)"
+            )
+            .style("font-family", "sans-serif")
+            .style("fill","black")
+            .text("Birth Rate");
+          let myLine = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(myData)
+            .attr("d", myLine)
+            .style("fill", "none")
+            .style("stroke", "red");
+
+          let yAxisGrid = d3
+            .axisRight(yScale)
+            .tickSize(800)
+            .tickFormat(" ")
+            .ticks(7);
+
+          drawSpace
+            .append("g")
+            .attr("transform", "translate(0,0)")
+            .call(yAxisGrid)
+            .style("stroke", "black")
+            .style("stroke-opacity", "0.2");
+
+          drawSpace
+            .selectAll("dot")
+            .data(myData)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 3)
+            .attr("fill", "red");
+
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "red")
+            .style("fill", "red")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 200);
+          // legend text
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 205)
+            .text("Total birth per year ")
+            .style("fill", "black");
+        });
+      }
+
+      function graph2() {
+        document.getElementById("container1").style.display = "none";
+        document.getElementById("container2").style.display = "block";
+        document.getElementById("container3").style.display = "none";
+        document.getElementById("container4").style.display = "none";
+        document.getElementById("container5").style.display = "none";
+        let container = d3.select("#container2");
+        let drawSpace = d3.select("#drawSpace2");
+        container.style("border", "solid 1px black");
+        //document.getElementById("drawSpace2").innerHTML = "";
+
+        d3.csv(
+          "total-fertility-rate-and-reproduction-rate.csv",
+          function (myData) {
+            console.log(myData);
+            dataMax = d3.max(myData, function (d) {
+              return +d.value;
+            });
+            var xScale = d3
+              .scaleLinear()
+              .domain([1960, 2020])
+              .range([0, drawSpaceW]);
+            var yScale = d3.scaleLinear().domain([0, 6]).range([drawSpaceH, 0]);
+            drawSpace
+              .append("g")
+              .call(d3.axisLeft(yScale))
+              .style("stroke", "black");
+            drawSpace
+              .append("g")
+              .call(d3.axisBottom(xScale))
+              .style("stroke", "black")
+              .attr("transform", "translate(0," + drawSpaceH + ")");
+            // Add x-axis label
+            drawSpace
+              .append("text")
+              .attr("x", drawSpaceW / 2)
+              .attr("y", drawSpaceH + 45)
+              .attr("text-anchor", "middle")
+              .style("font-family", "sans-serif")
+              .text("Year");
+            // Add y-axis label
+            drawSpace
+              .append("text")
+              .attr("text-anchor", "middle")
+              .attr(
+                "transform",
+                "translate(-50," + drawSpaceH / 2 + ")rotate(-90)"
+              )
+              .style("font-family", "sans-serif")
+              .text("Fertility/Reproduction Rate");
+
+            var total_Fertility = myData.filter(
+              (fd) => fd.level_1 == "Total Fertility Rate"
+            );
+            console.log(total_Fertility);
+            let myLine1 = d3
+              .line()
+              .x((d) => xScale(d.year))
+              .y((d) => yScale(d.value));
+            drawSpace
+              .append("path")
+              .datum(total_Fertility)
+              .attr("d", myLine1)
+              .style("fill", "none")
+              .style("stroke", "blue")
+              .attr("stroke-width", 2);
+
+            //name legends
+            container
+              .append("circle")
+              .style("stroke", "blue")
+              .style("fill", "blue")
+              .attr("r", 3)
+              .attr("cx", 910)
+              .attr("cy", 200);
+            // legend text
+            container
+              .append("text")
+              .attr("x", 920)
+              .attr("y", 205)
+              .text("Total Fertility Rate")
+              .style("fill", "black");
+
+            //gross
+            var gross_Reproduction = myData.filter(
+              (fd) => fd.level_1 == "Gross Reproduction Rate"
+            );
+            console.log(gross_Reproduction);
+            let myLine2 = d3
+              .line()
+              .x((d) => xScale(d.year))
+              .y((d) => yScale(d.value));
+            drawSpace
+              .append("path")
+              .datum(gross_Reproduction)
+              .attr("d", myLine2)
+              .style("fill", "none")
+              .style("stroke", "black")
+              .attr("stroke-width", 2);
+
+            //name legends
+            container
+              .append("circle")
+              .style("stroke", "black")
+              .style("fill", "black")
+              .attr("r", 3)
+              .attr("cx", 910)
+              .attr("cy", 225);
+            // legend text
+            container
+              .append("text")
+              .attr("x", 920)
+              .attr("y", 227)
+              .text("Gross Fertility Rate")
+              .style("fill", "black");
+
+            //Net reproduction
+            var net_Reproduction = myData.filter(
+              (fd) => fd.level_1 == "Net Reproduction Rate"
+            );
+            console.log(net_Reproduction);
+            let myLine3 = d3
+              .line()
+              .x((d) => xScale(d.year))
+              .y((d) => yScale(d.value));
+            drawSpace
+              .append("path")
+              .datum(net_Reproduction)
+              .attr("d", myLine3)
+              .style("fill", "none")
+              .style("stroke", "yellow")
+              .attr("stroke-width", 2);
+
+            let yAxisGrid = d3
+              .axisRight(yScale)
+              .tickSize(800)
+              .tickFormat(" ")
+              .ticks(12);
+
+            drawSpace
+              .append("g")
+              .attr("transform", "translate(0,0)")
+              .call(yAxisGrid)
+              .style("stroke", "black")
+              .style("stroke-opacity", "0.2");
+
+            //name legends
+            container
+              .append("circle")
+              .style("stroke", "yellow")
+              .style("fill", "yellow")
+              .attr("r", 3)
+              .attr("cx", 910)
+              .attr("cy", 245);
+            // legend text
+            container
+              .append("text")
+              .attr("x", 920)
+              .attr("y", 248)
+              .text("Net Reproduction Rate")
+              .style("fill", "black");
+
+            drawSpace
+              .append("g")
+              .selectAll("dot")
+              .data(net_Reproduction)
+              .enter()
+              .append("circle")
+              .attr("cx", function (d) {
+                return xScale(+d.year);
+              })
+              .attr("cy", function (d) {
+                return yScale(+d.value);
+              })
+              .attr("r", 3)
+              .attr("fill", "yellow");
+
+            drawSpace
+              .append("g")
+              .selectAll("dot")
+              .data(total_Fertility)
+              .enter()
+              .append("circle")
+              .attr("cx", function (d) {
+                return xScale(+d.year);
+              })
+              .attr("cy", function (d) {
+                return yScale(+d.value);
+              })
+              .attr("r", 3)
+              .attr("fill", "blue");
+
+            drawSpace
+              .append("g")
+              .selectAll("dot")
+              .data(gross_Reproduction)
+              .enter()
+              .append("circle")
+              .attr("cx", function (d) {
+                return xScale(+d.year);
+              })
+              .attr("cy", function (d) {
+                return yScale(+d.value);
+              })
+              .attr("r", 3)
+              .attr("fill", "black");
+          }
+        );
+      }
+      function graph3() {
+        document.getElementById("container1").style.display = "none";
+        document.getElementById("container2").style.display = "none";
+        document.getElementById("container3").style.display = "block";
+        document.getElementById("container4").style.display = "none";
+        document.getElementById("container5").style.display = "none";
+
+        let container = d3.select("#container3");
+        let drawSpace = d3.select("#drawSpace3");
+        container.style("border", "solid 1px black");
+
+        d3.csv("live-births.csv", function (myData) {
+          console.log(myData);
+          dataMax = d3.max(myData, function (d) {
+            if (d.value == "na") return 0;
+            else {
+              return +d.value;
+            }
+          });
+          console.log(dataMax);
+          var xScale = d3
+            .scaleLinear()
+            .domain([1960, 2020])
+            .range([0, drawSpaceW]);
+          var yScale = d3
+            .scaleLinear()
+            .domain([0, dataMax])
+            .range([drawSpaceH, 0]);
+          drawSpace
+            .append("g")
+            .call(d3.axisLeft(yScale))
+            .style("stroke", "black");
+          drawSpace
+            .append("g")
+            .call(d3.axisBottom(xScale))
+            .style("stroke", "black")
+            .attr("transform", "translate(0," + drawSpaceH + ")");
+          // Add x-axis label
+          drawSpace
+            .append("text")
+            .attr("x", drawSpaceW / 2)
+            .attr("y", drawSpaceH + 45)
+            .attr("text-anchor", "middle")
+            .style("font-family", "sans-serif")
+            .text("Year");
+          // Add y-axis label
+          drawSpace
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr(
+              "transform",
+              "translate(-60," + drawSpaceH / 2 + ")rotate(-90)"
+            )
+            .style("font-family", "sans-serif")
+            .text("Total/Resident Live Birth");
+          //total live birth
+          var total_Live = myData.filter(
+            (fd) => fd.level_1 == "Total Live-births"
+          );
+          console.log(total_Live);
+          let myLine1 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(total_Live)
+            .attr("d", myLine1)
+            .style("fill", "none")
+            .style("stroke", "red")
+            .attr("stroke-width", 2);
+
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "red")
+            .style("fill", "red")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 220);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 225)
+            .text("Total Live Births")
+            .style("fill", "black");
+
+          //resident-live birth
+          var resident_Live = myData.filter(
+            (fd) => fd.level_1 == "Resident Live-births"
+          );
+          for (var i = 0; i < resident_Live.length; i++) {
+            if (resident_Live[i].value == "na") {
+              resident_Live[i].value = 0;
+            }
+          }
+          console.log(resident_Live);
+          let myLine2 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(resident_Live)
+            .attr("d", myLine2)
+            .style("fill", "none")
+            .style("stroke", "blue")
+            .attr("stroke-width", 2);
+
+          let yAxisGrid = d3
+            .axisRight(yScale)
+            .tickSize(800)
+            .tickFormat(" ")
+            .ticks(12);
+
+          drawSpace
+            .append("g")
+            .attr("transform", "translate(0,0)")
+            .call(yAxisGrid)
+            .style("stroke", "black")
+            .style("stroke-opacity", "0.2");
+
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "blue")
+            .style("fill", "blue")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 240);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 245)
+            .text("Resident Live Births")
+            .style("fill", "black");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(resident_Live)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2.5)
+            .attr("fill", "blue");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(total_Live)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2.5)
+            .attr("fill", "red");
+        });
+      }
+      function graph4() {
+        document.getElementById("container1").style.display = "none";
+        document.getElementById("container2").style.display = "none";
+        document.getElementById("container3").style.display = "none";
+        document.getElementById("container4").style.display = "block";
+        document.getElementById("container5").style.display = "none";
+
+        let container = d3.select("#container4");
+        let drawSpace = d3.select("#drawSpace4");
+        container.style("border", "solid 1px black");
+        d3.csv("total-fertility-rate-by-ethnic-group.csv", function (myData) {
+          console.log(myData);
+          dataMax = d3.max(myData, function (d) {
+            return +d.value;
+          });
+          var xScale = d3
+            .scaleLinear()
+            .domain([1960, 2020])
+            .range([0, drawSpaceW]);
+          var yScale = d3.scaleLinear().domain([0, 7.5]).range([drawSpaceH, 0]);
+          drawSpace
+            .append("g")
+            .call(d3.axisLeft(yScale))
+            .style("stroke", "black");
+          drawSpace
+            .append("g")
+            .call(d3.axisBottom(xScale))
+            .style("stroke", "black")
+            .attr("transform", "translate(0," + drawSpaceH + ")");
+          // Add x-axis label
+          drawSpace
+            .append("text")
+            .attr("x", drawSpaceW / 2)
+            .attr("y", drawSpaceH + 45)
+            .attr("text-anchor", "middle")
+            .style("font-family", "sans-serif")
+            .text("Year");
+          // Add y-axis label
+          drawSpace
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr(
+              "transform",
+              "translate(-50," + drawSpaceH / 2 + ")rotate(-90)"
+            )
+            .style("font-family", "sans-serif")
+            .text("Total Fertility Rate");
+          //chinese
+          var chinese = myData.filter((fd) => fd.level_2 == "Chinese");
+          console.log(chinese);
+          let myLine1 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(chinese)
+            .attr("d", myLine1)
+            .style("fill", "none")
+            .style("stroke", "blue")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "blue")
+            .style("fill", "blue")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 220);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 225)
+            .text("Chinese")
+            .style("fill", "black");
+
+          //Malay
+          var Malay = myData.filter((fd) => fd.level_2 == "Malays");
+          console.log(Malay);
+          let myLine2 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(Malay)
+            .attr("d", myLine2)
+            .style("fill", "none")
+            .style("stroke", "black")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "black")
+            .style("fill", "black")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 240);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 245)
+            .text("Malays")
+            .style("fill", "black");
+
+          //Indians
+          var indian = myData.filter((fd) => fd.level_2 == "Indians");
+          console.log(indian);
+          let myLine3 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(indian)
+            .attr("d", myLine3)
+            .style("fill", "none")
+            .style("stroke", "yellow")
+            .attr("stroke-width", 2);
+
+          let yAxisGrid = d3
+            .axisRight(yScale)
+            .tickSize(800)
+            .tickFormat(" ")
+            .ticks(7);
+
+          drawSpace
+            .append("g")
+            .attr("transform", "translate(0,0)")
+            .call(yAxisGrid)
+            .style("stroke", "black")
+            .style("stroke-opacity", "0.2");
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "yellow")
+            .style("fill", "yellow")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 260);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 265)
+            .text("Indians")
+            .style("fill", "black");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(indian)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2.5)
+            .attr("fill", "yellow");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(chinese)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2.5)
+            .attr("fill", "blue");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(Malay)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2.5)
+            .attr("fill", "black");
+        });
+      }
+
+      function graph5() {
+        document.getElementById("container1").style.display = "none";
+        document.getElementById("container2").style.display = "none";
+        document.getElementById("container3").style.display = "none";
+        document.getElementById("container4").style.display = "none";
+        document.getElementById("container5").style.display = "block";
+
+        let container = d3.select("#container5");
+        let drawSpace = d3.select("#drawSpace5");
+        container.style("border", "solid 1px black");
+        d3.csv("age-specific-fertility-rate.csv", function (myData) {
+          console.log(myData);
+          dataMax = d3.max(myData, function (d) {
+            return +d.value;
+          });
+          var xScale = d3
+            .scaleLinear()
+            .domain([1960, 2018])
+            .range([0, drawSpaceW]);
+          var yScale = d3
+            .scaleLinear()
+            .domain([0, dataMax])
+            .range([drawSpaceH, 0]);
+          drawSpace
+            .append("g")
+            .call(d3.axisLeft(yScale))
+            .style("stroke", "black");
+          drawSpace
+            .append("g")
+            .call(d3.axisBottom(xScale))
+            .style("stroke", "black")
+            .attr("transform", "translate(0," + drawSpaceH + ")");
+          // Add x-axis label
+          drawSpace
+            .append("text")
+            .attr("x", drawSpaceW / 2)
+            .attr("y", drawSpaceH + 45)
+            .attr("text-anchor", "middle")
+            .style("font-family", "sans-serif")
+            .text("Year");
+          // Add y-axis label
+          drawSpace
+            .append("text")
+            .attr("text-anchor", "middle")
+            .attr(
+              "transform",
+              "translate(-60," + drawSpaceH / 2 + ")rotate(-90)"
+            )
+            .style("font-family", "sans-serif")
+            .text("Age specific Fertility Rate");
+
+          //15-19 years
+          var first = myData.filter((fd) => fd.level_2 == "15 - 19 Years");
+          console.log(first);
+          let myLine1 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(first)
+            .attr("d", myLine1)
+            .style("fill", "none")
+            .style("stroke", "blue")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .selectAll("circle")
+            .data(first)
+            .enter()
+            .append("circle")
+            .style("stroke", "blue")
+            .style("fill", "blue")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 140);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 145)
+            .text("15-19")
+            .style("fill", "black");
+
+          //20-24 years
+          var second = myData.filter((fd) => fd.level_2 == "20 - 24 Years");
+          console.log(second);
+          let myLine2 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(second)
+            .attr("d", myLine2)
+            .style("fill", "none")
+            .style("stroke", "red")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "red")
+            .style("fill", "red")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 160);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 165)
+            .text("20-24")
+            .style("fill", "black");
+
+          //25 - 29 Years
+          var third = myData.filter((fd) => fd.level_2 == "25 - 29 Years");
+          console.log(third);
+          let myLine3 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(third)
+            .attr("d", myLine3)
+            .style("fill", "none")
+            .style("stroke", "black")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "black")
+            .style("fill", "black")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 180);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 185)
+            .text("25-29")
+            .style("fill", "black");
+
+          //30 - 34 Years
+          var fourth = myData.filter((fd) => fd.level_2 == "30 - 34 Years");
+          console.log(fourth);
+          let myLine4 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(fourth)
+            .attr("d", myLine4)
+            .style("fill", "none")
+            .style("stroke", "yellow")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "yellow")
+            .style("fill", "yellow")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 200);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 205)
+            .text("30-34")
+            .style("fill", "black");
+
+          //35 - 39 Years
+          var fifth = myData.filter((fd) => fd.level_2 == "35 - 39 Years");
+          console.log(fifth);
+          let myLine5 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(fifth)
+            .attr("d", myLine5)
+            .style("fill", "none")
+            .style("stroke", "brown")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "brown")
+            .style("fill", "brown")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 220);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 225)
+            .text("35-39")
+            .style("fill", "black");
+
+          //20-24 years
+          var sixth = myData.filter((fd) => fd.level_2 == "40 - 44 Years");
+          console.log(sixth);
+          let myLine6 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(sixth)
+            .attr("d", myLine6)
+            .style("fill", "none")
+            .style("stroke", "green")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+
+            .append("circle")
+            .style("stroke", "green")
+            .style("fill", "green")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 240);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 245)
+            .text("40-44")
+            .style("fill", "black");
+
+          //45 - 49 Years
+          var seventh = myData.filter((fd) => fd.level_2 == "45 - 49 Years");
+          for (var i = 0; i < seventh.length; i++) {
+            if (seventh[i].value == "na") {
+              seventh[i].value = 0;
+            }
+          }
+          console.log(seventh);
+          let myLine7 = d3
+            .line()
+            .x((d) => xScale(d.year))
+            .y((d) => yScale(d.value));
+          drawSpace
+            .append("path")
+            .datum(seventh)
+            .attr("d", myLine7)
+            .style("fill", "none")
+            .style("stroke", "purple")
+            .attr("stroke-width", 2);
+          //name legends
+          container
+            .append("circle")
+            .style("stroke", "purple")
+            .style("fill", "purple")
+            .attr("r", 3)
+            .attr("cx", 910)
+            .attr("cy", 260);
+
+          container
+            .append("text")
+            .attr("x", 920)
+            .attr("y", 265)
+            .text("45-49")
+            .style("fill", "black");
+
+          let yAxisGrid = d3
+            .axisRight(yScale)
+            .tickSize(800)
+            .tickFormat(" ")
+            .ticks(6);
+
+          drawSpace
+            .append("g")
+            .attr("transform", "translate(0,0)")
+            .call(yAxisGrid)
+            .style("stroke", "black")
+            .style("stroke-opacity", "0.2");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(first)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "blue");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(second)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "red");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(third)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "black");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(fourth)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "yellow");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(fifth)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "brown");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(sixth)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "green");
+
+          drawSpace
+            .append("g")
+            .selectAll("dot")
+            .data(seventh)
+            .enter()
+            .append("circle")
+            .attr("cx", function (d) {
+              return xScale(+d.year);
+            })
+            .attr("cy", function (d) {
+              return yScale(+d.value);
+            })
+            .attr("r", 2)
+            .attr("fill", "purple");
+        });
+      }
+    </script>
+  </body>
+</html>
